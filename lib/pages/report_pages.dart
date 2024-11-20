@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:bookit/helpers/database_helper.dart';
 import 'package:bookit/helpers/firebase_helper.dart';
 import 'package:bookit/rooms/rooms_state.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -39,6 +44,72 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
+  // Method to export the PDF
+  Future<void> _exportPdf(List<RoomModel> rooms) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) => pw.ListView(
+          children: rooms.asMap().entries.map((entry) {
+            final index = entry.key;
+            final room = entry.value;
+
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Room ${index + 1}:',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                ...room.members.map((member) => pw.Text(
+                      '${member.firstName} ${member.lastName} - ${_calculateAge(member.dob)} years',
+                      style: const pw.TextStyle(fontSize: 14),
+                    )),
+                if (room.hasPet)
+                  pw.Text(
+                    'Pet: Yes',
+                    style: const pw.TextStyle(fontSize: 14),
+                  ),
+                pw.SizedBox(height: 16),
+                pw.Divider(),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+
+    try {
+      // Get the Downloads directory
+      final outputDir = await getDownloadsDirectory();
+      if (outputDir == null) {
+        throw Exception("Downloads directory not available");
+      }
+
+      // Define the file path
+      final file = File('${outputDir.path}/RoomReport.pdf');
+
+      // Write the PDF to the file
+      await file.writeAsBytes(await pdf.save());
+
+      // Notify the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('PDF saved to Downloads: ${file.path}')),
+      );
+
+      OpenFile.open(file.path);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save PDF: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +120,14 @@ class _ReportPageState extends State<ReportPage> {
             icon: const Icon(Icons.delete),
             onPressed: _clearDatabase, // Call the clear database method
             tooltip: 'Clear Database',
+          ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () async {
+              final fetchedRooms = await rooms; // Fetch the rooms data
+              _exportPdf(fetchedRooms); // Call PDF export method
+            },
+            tooltip: 'Export PDF',
           ),
         ],
       ),
