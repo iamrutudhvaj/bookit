@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "534389697979",
+    "project_id": "bookit-27cd0",
+    "storage_bucket": "bookit-27cd0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534389697979:android:0c83f1579ad180c717a89e",
+        "android_client_info": {
+          "package_name": "com.tatvam.bookit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDv3ZfpuGkM1x8Vzu-LybxqYnNz-qWEEI8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
