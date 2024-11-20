@@ -1,3 +1,4 @@
+import 'package:bookit/helpers/sync_helper.dart';
 import 'package:bookit/pages/report_pages.dart';
 import 'package:bookit/rooms/rooms_event.dart';
 import 'package:bookit/rooms/rooms_state.dart';
@@ -35,6 +36,15 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: const Text('Home page'),
           actions: [
+            IconButton.filledTonal(
+                onPressed: () async {
+                  await SyncService().fullSync();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Sync completed successfully!')),
+                  );
+                },
+                icon: const Icon(Icons.sync)),
             IconButton.filledTonal(
                 onPressed: () {
                   Navigator.push(

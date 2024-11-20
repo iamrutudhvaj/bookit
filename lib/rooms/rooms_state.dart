@@ -15,24 +15,51 @@ class RoomState extends Equatable {
   List<Object> get props => [rooms];
 }
 
-class RoomModel {
-  final List<MemberModel> members; // Updated to use MemberModel
-  final bool hasPet;
+class RoomModel extends Equatable {
+  final String roomId; // Common unique identifier for Firebase and local DB
+  final List<MemberModel> members; // List of members
+  final bool hasPet; // Indicates if the room has a pet
 
-  RoomModel({
+  const RoomModel({
+    required this.roomId,
     this.members = const [],
     this.hasPet = false,
   });
 
   RoomModel copyWith({
+    String? roomId,
     List<MemberModel>? members,
     bool? hasPet,
   }) {
     return RoomModel(
+      roomId: roomId ?? this.roomId,
       members: members ?? this.members,
       hasPet: hasPet ?? this.hasPet,
     );
   }
+
+  // Convert RoomModel to a Map for Firebase or local DB
+  Map<String, dynamic> toMap() {
+    return {
+      'roomId': roomId,
+      'hasPet': hasPet,
+      'members': members.map((member) => member.toMap()).toList(),
+    };
+  }
+
+  // Create a RoomModel from a Map (e.g., from Firebase or local DB)
+  factory RoomModel.fromMap(Map<String, dynamic> map) {
+    return RoomModel(
+      roomId: map['roomId'],
+      hasPet: map['hasPet'] ?? false,
+      members: (map['members'] as List<dynamic>)
+          .map((member) => MemberModel.fromMap(member))
+          .toList(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [roomId, members, hasPet];
 }
 
 class MemberModel extends Equatable {
@@ -62,8 +89,28 @@ class MemberModel extends Equatable {
     );
   }
 
+  // Convert MemberModel to a Map for Firebase or local DB
+  Map<String, dynamic> toMap() {
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'dob': dob.toIso8601String(),
+      'isChild': isChild,
+    };
+  }
+
+  // Create a MemberModel from a Map
+  factory MemberModel.fromMap(Map<String, dynamic> map) {
+    return MemberModel(
+      firstName: map['firstName'],
+      lastName: map['lastName'],
+      dob: DateTime.parse(map['dob']),
+      isChild: map['isChild'] ?? false,
+    );
+  }
+
   @override
-  List<Object> get props => [firstName, lastName, dob, isChild];
+  List<Object?> get props => [firstName, lastName, dob, isChild];
 }
 
 class SubmissionState extends RoomState {

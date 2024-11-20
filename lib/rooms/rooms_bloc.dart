@@ -4,6 +4,7 @@ import 'package:bookit/rooms/rooms_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 class RoomBloc extends Bloc<RoomEvent, RoomState> {
   final BuildContext context;
@@ -19,9 +20,24 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     on<AddPetEvent>(_onAddPet);
   }
 
+  final Uuid uuid = const Uuid();
+
+  String _generateRoomId() {
+    return uuid.v4(); // Generate a universally unique identifier (UUID)
+  }
+
   void _onAddRoom(AddRoomEvent event, Emitter<RoomState> emit) {
-    final newRoom = RoomModel();
+    final String newRoomId = _generateRoomId(); // Generate a unique roomId
+    final newRoom = RoomModel(
+      roomId: newRoomId, // Set the generated roomId
+      members: const [],
+      hasPet: false,
+    );
+
+    // Add the new room to the list of rooms
     final updatedRooms = List<RoomModel>.from(state.rooms)..add(newRoom);
+
+    // Emit the updated state with the new list of rooms
     emit(state.copyWith(rooms: updatedRooms));
   }
 
@@ -163,6 +179,7 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
         final roomId = await txn.insert('rooms', {
           'hasPet':
               room.hasPet ? 1 : 0, // Store hasPet as 1 (true) or 0 (false)
+          'roomId': room.roomId,
         });
 
         // Insert each member for the room into the 'members' table
@@ -186,7 +203,10 @@ class RoomBloc extends Bloc<RoomEvent, RoomState> {
     final firestore = FirebaseFirestore.instance;
 
     for (var room in rooms) {
-      final roomDoc = firestore.collection('rooms').doc();
+      // Use roomId as the Firestore document ID
+      final roomDoc = firestore.collection('rooms').doc(room.roomId);
+
+      // Set or update the room document in Firebase
       await roomDoc.set({
         'hasPet': room.hasPet,
         'members': room.members

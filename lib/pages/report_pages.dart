@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:bookit/helpers/database_helper.dart';
-import 'package:bookit/helpers/firebase_helper.dart';
 import 'package:bookit/rooms/rooms_state.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
@@ -30,7 +29,7 @@ class _ReportPageState extends State<ReportPage> {
     await DatabaseHelper.instance.clearDatabase();
 
     // Clear Firestore data
-    await FirebaseHelper.clearAllFirestoreData();
+    // await FirebaseHelper.clearAllFirestoreData();
 
     // Update UI
     setState(() {
